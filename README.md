@@ -11,7 +11,7 @@ This demo allows you to compare the performance of different delta compression a
 - **bsdiff** - Binary diff algorithm optimized for executables
 - **fossil-delta** - Fast, lightweight delta compression
 
-Try it live: **[Coming Soon]**
+🚀 **Try it live: [xpatch-webdemo.vercel.app](https://xpatch-webdemo.vercel.app/)**
 
 ## Development
 
