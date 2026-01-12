@@ -12,3 +12,12 @@ This demo allows you to compare the performance of different delta compression a
 - **fossil-delta** - Fast, lightweight delta compression
 
 Try it live: **[Coming Soon]**
+
+## Development
+
+Requires [Bun](https://bun.sh) to run locally.
+
+```bash
+bun install
+bun run dev
+```
