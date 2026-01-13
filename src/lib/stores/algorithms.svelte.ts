@@ -13,6 +13,7 @@ function createAlgorithmStore() {
   let initialized = $state<Map<string, boolean>>(new Map());
   let loading = $state<Map<string, boolean>>(new Map());
   let enableZstd = $state(true);
+  let comparisonBatchSize = $state(20); // Batch size for comparison timing precision
   let loadedAlgorithms = $state<Map<string, DeltaAlgorithm>>(new Map());
 
   const available = $derived(algorithmInfo);
@@ -52,10 +53,16 @@ function createAlgorithmStore() {
     get enableZstd(): boolean {
       return enableZstd;
     },
+    get comparisonBatchSize(): number {
+      return comparisonBatchSize;
+    },
 
     // Setters
     set enableZstd(value: boolean) {
       enableZstd = value;
+    },
+    setComparisonBatchSize(value: number): void {
+      comparisonBatchSize = Math.max(1, Math.min(100, value));
     },
 
     // Get loaded algorithm by ID
@@ -179,6 +186,7 @@ function createAlgorithmStore() {
     reset(): void {
       selected = new Set(DEFAULT_SELECTED);
       enableZstd = true;
+      comparisonBatchSize = 20;
     },
   };
 }

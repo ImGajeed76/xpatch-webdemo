@@ -72,16 +72,40 @@ export interface CompressionResult {
 
 // Benchmark statistics
 export interface BenchmarkStats {
+  // Sample size
   runs: number;
+  outliersRemoved: number;
+
+  // Central tendency
   mean: number;
+  trimmedMean: number; // Mean excluding top/bottom 10%
   median: number;
+
+  // Spread
   min: number;
   max: number;
+  range: number;
   stdDev: number;
   variance: number;
+  iqr: number; // Interquartile range (Q3 - Q1)
+  cv: number; // Coefficient of variation (stdDev / mean)
+
+  // Percentiles
+  p5: number;
+  p25: number; // Q1
+  p75: number; // Q3
   p95: number;
   p99: number;
+
+  // Confidence interval (95%)
+  sem: number; // Standard error of mean
+  ci95Lower: number;
+  ci95Upper: number;
+  marginOfError: number;
+
+  // Raw data
   rawTimes: number[];
+  filteredTimes: number[]; // After outlier removal
 }
 
 // Full benchmark result
@@ -104,6 +128,7 @@ export interface BenchmarkConfig {
   iterations: number;
   warmupRuns: number;
   cooldownMs: number; // Time between runs to allow GC
+  batchSize: number; // Operations per timing measurement (increases precision)
 }
 
 // History entry

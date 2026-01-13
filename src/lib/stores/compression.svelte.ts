@@ -155,27 +155,41 @@ function createCompressionStore() {
             await algorithm.init();
           }
 
-          // Encode
-          const encodeResult = await algorithm.encode(base, newer, {
-            enableZstd: algorithmStore.enableZstd,
-          });
+          const batchSize = algorithmStore.comparisonBatchSize;
+          let encodeResult;
+          let decodeResult;
 
-          // Decode and verify
-          const decodeResult = await algorithm.decode(base, encodeResult.delta);
+          // Batch encode timing for precision
+          const encodeStart = performance.now();
+          for (let b = 0; b < batchSize; b++) {
+            encodeResult = await algorithm.encode(base, newer, {
+              enableZstd: algorithmStore.enableZstd,
+            });
+          }
+          const encodeEnd = performance.now();
+          const encodeTimeMs = (encodeEnd - encodeStart) / batchSize;
+
+          // Batch decode timing for precision
+          const decodeStart = performance.now();
+          for (let b = 0; b < batchSize; b++) {
+            decodeResult = await algorithm.decode(base, encodeResult!.delta);
+          }
+          const decodeEnd = performance.now();
+          const decodeTimeMs = (decodeEnd - decodeStart) / batchSize;
 
           // Verify the decoded data matches
-          const verified = arraysEqual(decodeResult.data, newer);
+          const verified = arraysEqual(decodeResult!.data, newer);
 
           newResults.push({
             algorithmId: algorithm.id,
             timestamp: Date.now(),
             baseSize: base.length,
             newSize: newer.length,
-            deltaSize: encodeResult.deltaSize,
-            compressionRatio: encodeResult.compressionRatio,
-            spaceSavings: 1 - encodeResult.compressionRatio,
-            encodeTimeMs: encodeResult.encodingTimeMs,
-            decodeTimeMs: decodeResult.decodingTimeMs,
+            deltaSize: encodeResult!.deltaSize,
+            compressionRatio: encodeResult!.compressionRatio,
+            spaceSavings: 1 - encodeResult!.compressionRatio,
+            encodeTimeMs,
+            decodeTimeMs,
             verified,
           });
         } catch (err) {

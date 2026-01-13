@@ -33,6 +33,7 @@ const DEFAULT_CONFIG: BenchmarkConfig = {
   iterations: 10,
   warmupRuns: 3,
   cooldownMs: 10,
+  batchSize: 20, // 20 ops per measurement = 20x precision improvement
 };
 
 function loadHistory(): BenchmarkRun[] {
@@ -135,6 +136,10 @@ function createBenchmarkStore() {
 
     setCooldownMs(value: number): void {
       config = {...config, cooldownMs: Math.max(0, Math.min(100, value))};
+    },
+
+    setBatchSize(value: number): void {
+      config = {...config, batchSize: Math.max(1, Math.min(100, value))};
     },
 
     // Actions
@@ -247,18 +252,28 @@ function createBenchmarkStore() {
           "New Size",
           "Delta Size",
           "Compression Ratio",
+          "Encode Runs",
+          "Encode Outliers Removed",
           "Encode Mean (ms)",
+          "Encode CI 95% (ms)",
           "Encode Median (ms)",
+          "Encode Trimmed Mean (ms)",
           "Encode Min (ms)",
           "Encode Max (ms)",
           "Encode StdDev",
+          "Encode IQR",
           "Encode P95",
           "Encode P99",
+          "Decode Runs",
+          "Decode Outliers Removed",
           "Decode Mean (ms)",
+          "Decode CI 95% (ms)",
           "Decode Median (ms)",
+          "Decode Trimmed Mean (ms)",
           "Decode Min (ms)",
           "Decode Max (ms)",
           "Decode StdDev",
+          "Decode IQR",
           "Decode P95",
           "Decode P99",
         ].join(",")
@@ -277,18 +292,28 @@ function createBenchmarkStore() {
               result.newSize,
               result.deltaSize,
               result.compressionRatio.toFixed(4),
+              result.encoding.runs,
+              result.encoding.outliersRemoved,
               result.encoding.mean.toFixed(3),
+              result.encoding.marginOfError.toFixed(3),
               result.encoding.median.toFixed(3),
+              result.encoding.trimmedMean.toFixed(3),
               result.encoding.min.toFixed(3),
               result.encoding.max.toFixed(3),
               result.encoding.stdDev.toFixed(3),
+              result.encoding.iqr.toFixed(3),
               result.encoding.p95.toFixed(3),
               result.encoding.p99.toFixed(3),
+              result.decoding.runs,
+              result.decoding.outliersRemoved,
               result.decoding.mean.toFixed(3),
+              result.decoding.marginOfError.toFixed(3),
               result.decoding.median.toFixed(3),
+              result.decoding.trimmedMean.toFixed(3),
               result.decoding.min.toFixed(3),
               result.decoding.max.toFixed(3),
               result.decoding.stdDev.toFixed(3),
+              result.decoding.iqr.toFixed(3),
               result.decoding.p95.toFixed(3),
               result.decoding.p99.toFixed(3),
             ].join(",")
@@ -336,14 +361,14 @@ async function runAlgorithmBenchmark(
   config: BenchmarkConfig,
   onProgress: (progress: BenchmarkProgress) => void
 ): Promise<BenchmarkResult> {
-  const {iterations, warmupRuns, cooldownMs} = config;
+  const {iterations, warmupRuns, cooldownMs, batchSize} = config;
 
   // Ensure algorithm is initialized
   if (!algorithm.isInitialized()) {
     await algorithm.init();
   }
 
-  // Warmup phase
+  // Warmup phase - run batchSize * warmupRuns operations
   for (let i = 0; i < warmupRuns; i++) {
     onProgress({
       algorithm: algorithm.name,
@@ -351,13 +376,17 @@ async function runAlgorithmBenchmark(
       totalIterations: warmupRuns,
       phase: "warmup",
     });
-    await algorithm.encode(baseData, newData, {
-      enableZstd: algorithmStore.enableZstd,
-    });
+    for (let b = 0; b < batchSize; b++) {
+      await algorithm.encode(baseData, newData, {
+        enableZstd: algorithmStore.enableZstd,
+      });
+    }
     await sleep(cooldownMs);
   }
 
-  // Encoding benchmark
+  // Encoding benchmark with batch timing
+  // Batch timing: time batchSize ops together, divide for per-op time
+  // This increases effective precision by batchSize factor
   const encodeTimes: number[] = [];
   let delta: Uint8Array | null = null;
 
@@ -370,17 +399,34 @@ async function runAlgorithmBenchmark(
     });
 
     const start = performance.now();
-    const result = await algorithm.encode(baseData, newData, {
-      enableZstd: algorithmStore.enableZstd,
-    });
+    for (let b = 0; b < batchSize; b++) {
+      const result = await algorithm.encode(baseData, newData, {
+        enableZstd: algorithmStore.enableZstd,
+      });
+      delta = result.delta;
+    }
     const end = performance.now();
 
-    encodeTimes.push(end - start);
-    delta = result.delta;
+    // Per-operation time = total batch time / batch size
+    encodeTimes.push((end - start) / batchSize);
     await sleep(cooldownMs);
   }
 
-  // Decoding benchmark
+  // Decoding warmup phase
+  for (let i = 0; i < warmupRuns; i++) {
+    onProgress({
+      algorithm: algorithm.name,
+      iteration: i + 1,
+      totalIterations: warmupRuns,
+      phase: "warmup",
+    });
+    for (let b = 0; b < batchSize; b++) {
+      await algorithm.decode(baseData, delta!);
+    }
+    await sleep(cooldownMs);
+  }
+
+  // Decoding benchmark with batch timing
   const decodeTimes: number[] = [];
 
   for (let i = 0; i < iterations; i++) {
@@ -392,10 +438,13 @@ async function runAlgorithmBenchmark(
     });
 
     const start = performance.now();
-    await algorithm.decode(baseData, delta!);
+    for (let b = 0; b < batchSize; b++) {
+      await algorithm.decode(baseData, delta!);
+    }
     const end = performance.now();
 
-    decodeTimes.push(end - start);
+    // Per-operation time = total batch time / batch size
+    decodeTimes.push((end - start) / batchSize);
     await sleep(cooldownMs);
   }
 
@@ -423,33 +472,115 @@ function calculateStats(times: number[]): BenchmarkStats {
   const sorted = [...times].sort((a, b) => a - b);
   const n = sorted.length;
 
-  const sum = sorted.reduce((a, b) => a + b, 0);
-  const mean = sum / n;
+  // Calculate quartiles for IQR-based outlier detection
+  const q1 = getPercentile(sorted, 0.25);
+  const q3 = getPercentile(sorted, 0.75);
+  const iqr = q3 - q1;
 
-  const median =
-    n % 2 === 0
-      ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2
-      : sorted[Math.floor(n / 2)];
+  // Remove outliers using IQR method (1.5 * IQR rule)
+  const lowerBound = q1 - 1.5 * iqr;
+  const upperBound = q3 + 1.5 * iqr;
+  const filtered = sorted.filter((t) => t >= lowerBound && t <= upperBound);
+  const outliersRemoved = n - filtered.length;
 
+  // Use filtered data for statistics (fall back to original if all filtered out)
+  const data = filtered.length > 0 ? filtered : sorted;
+  const count = data.length;
+
+  // Central tendency
+  const sum = data.reduce((a, b) => a + b, 0);
+  const mean = sum / count;
+  const median = getPercentile(data, 0.5);
+
+  // Trimmed mean (exclude top/bottom 10%)
+  const trimAmount = Math.floor(count * 0.1);
+  const trimmedData = data.slice(trimAmount, count - trimAmount);
+  const trimmedMean =
+    trimmedData.length > 0
+      ? trimmedData.reduce((a, b) => a + b, 0) / trimmedData.length
+      : mean;
+
+  // Spread - use sample variance (Bessel's correction: n-1)
   const variance =
-    sorted.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+    count > 1
+      ? data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) /
+        (count - 1)
+      : 0;
   const stdDev = Math.sqrt(variance);
+  const range = data[count - 1] - data[0];
+  const cv = mean > 0 ? stdDev / mean : 0; // Coefficient of variation
 
-  const p95Index = Math.ceil(0.95 * n) - 1;
-  const p99Index = Math.ceil(0.99 * n) - 1;
+  // Percentiles (from filtered data)
+  const p5 = getPercentile(data, 0.05);
+  const p25 = getPercentile(data, 0.25);
+  const p75 = getPercentile(data, 0.75);
+  const p95 = getPercentile(data, 0.95);
+  const p99 = getPercentile(data, 0.99);
+  const filteredIqr = p75 - p25;
+
+  // Confidence interval (95%) using t-distribution approximation
+  // For large n, t ≈ 1.96; for smaller n, use approximation
+  const tValue = count >= 30 ? 1.96 : getTValue95(count - 1);
+  const sem = stdDev / Math.sqrt(count); // Standard error of mean
+  const marginOfError = tValue * sem;
+  const ci95Lower = mean - marginOfError;
+  const ci95Upper = mean + marginOfError;
 
   return {
-    runs: n,
+    runs: count,
+    outliersRemoved,
     mean,
+    trimmedMean,
     median,
-    min: sorted[0],
-    max: sorted[n - 1],
+    min: data[0],
+    max: data[count - 1],
+    range,
     stdDev,
     variance,
-    p95: sorted[Math.min(p95Index, n - 1)],
-    p99: sorted[Math.min(p99Index, n - 1)],
+    iqr: filteredIqr,
+    cv,
+    p5,
+    p25,
+    p75,
+    p95,
+    p99,
+    sem,
+    ci95Lower,
+    ci95Upper,
+    marginOfError,
     rawTimes: times,
+    filteredTimes: filtered,
   };
+}
+
+// Get percentile using linear interpolation
+function getPercentile(sorted: number[], p: number): number {
+  const n = sorted.length;
+  if (n === 0) return 0;
+  if (n === 1) return sorted[0];
+
+  const index = p * (n - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  const weight = index - lower;
+
+  if (lower === upper) return sorted[lower];
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+}
+
+// Approximate t-value for 95% confidence interval
+// Using approximation for common degrees of freedom
+function getTValue95(df: number): number {
+  if (df >= 120) return 1.98;
+  if (df >= 60) return 2.0;
+  if (df >= 30) return 2.04;
+  if (df >= 20) return 2.09;
+  if (df >= 15) return 2.13;
+  if (df >= 10) return 2.23;
+  if (df >= 5) return 2.57;
+  if (df >= 3) return 3.18;
+  if (df >= 2) return 4.3;
+  return 12.71; // df = 1
 }
 
 function sleep(ms: number): Promise<void> {

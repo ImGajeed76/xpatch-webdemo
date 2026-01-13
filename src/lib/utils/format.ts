@@ -16,10 +16,15 @@ export function formatBytes(bytes: number, decimals = 2): string {
 
 /**
  * Format time in milliseconds to human-readable string
+ * Always shows the specified number of decimal places
  */
 export function formatTime(ms: number, decimals = 2): string {
+  if (!Number.isFinite(ms) || ms < 0) {
+    return `0.${"0".repeat(decimals)} μs`;
+  }
   if (ms < 1) {
-    return `${(ms * 1000).toFixed(decimals)} μs`;
+    const us = ms * 1000;
+    return `${us.toFixed(decimals)} μs`;
   }
   if (ms < 1000) {
     return `${ms.toFixed(decimals)} ms`;

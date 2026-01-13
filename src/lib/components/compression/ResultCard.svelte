@@ -56,10 +56,10 @@
       <!-- Secondary: Time -->
       <div class="text-muted-foreground space-y-1 text-xs">
         <p class="whitespace-nowrap">
-          {m.demo_result_encode_abbr()}: {formatTime(result.encodeTimeMs)}
+          {m.demo_result_encode_abbr()}: {formatTime(result.encodeTimeMs)}*
         </p>
         <p class="whitespace-nowrap">
-          {m.demo_result_decode_abbr()}: {formatTime(result.decodeTimeMs)}
+          {m.demo_result_decode_abbr()}: {formatTime(result.decodeTimeMs)}*
         </p>
       </div>
     </div>

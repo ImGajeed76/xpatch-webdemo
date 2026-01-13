@@ -4,6 +4,7 @@
   import {Label} from "$lib/components/ui/label";
   import {Badge} from "$lib/components/ui/badge";
   import {Switch} from "$lib/components/ui/switch";
+  import {Input} from "$lib/components/ui/input";
   import {algorithmStore} from "$lib/stores/algorithms.svelte";
   import {Loader2} from "@lucide/svelte";
 </script>
@@ -63,6 +64,29 @@
         </Label>
         <p class="text-muted-foreground text-xs">
           {m.demo_options_zstd_description()}
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <Input
+        id="batchSize"
+        type="number"
+        min={1}
+        max={100}
+        class="w-20"
+        value={algorithmStore.comparisonBatchSize}
+        oninput={(e) => {
+          const target = e.target as HTMLInputElement;
+          algorithmStore.setComparisonBatchSize(parseInt(target.value) || 20);
+        }}
+      />
+      <div class="space-y-0.5">
+        <Label for="batchSize" class="text-sm font-medium">
+          {m.demo_options_batch_size()}
+        </Label>
+        <p class="text-muted-foreground text-xs">
+          {m.demo_options_batch_size_description()}
         </p>
       </div>
     </div>

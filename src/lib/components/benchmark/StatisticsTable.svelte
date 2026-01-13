@@ -43,6 +43,14 @@
               </Table.Row>
               <Table.Row>
                 <Table.Cell class="font-medium"
+                  >{m.demo_benchmark_ci95()}</Table.Cell
+                >
+                <Table.Cell class="text-right"
+                  >±{formatTime(result.encoding.marginOfError)}</Table.Cell
+                >
+              </Table.Row>
+              <Table.Row>
+                <Table.Cell class="font-medium"
                   >{m.demo_benchmark_median()}</Table.Cell
                 >
                 <Table.Cell class="text-right"
@@ -55,6 +63,14 @@
                 >
                 <Table.Cell class="text-right"
                   >{formatTime(result.encoding.stdDev)}</Table.Cell
+                >
+              </Table.Row>
+              <Table.Row>
+                <Table.Cell class="font-medium"
+                  >{m.demo_benchmark_iqr()}</Table.Cell
+                >
+                <Table.Cell class="text-right"
+                  >{formatTime(result.encoding.iqr)}</Table.Cell
                 >
               </Table.Row>
               <Table.Row>
@@ -81,14 +97,16 @@
                   >{formatTime(result.encoding.p95)}</Table.Cell
                 >
               </Table.Row>
-              <Table.Row>
-                <Table.Cell class="font-medium"
-                  >{m.demo_benchmark_p99()}</Table.Cell
-                >
-                <Table.Cell class="text-right"
-                  >{formatTime(result.encoding.p99)}</Table.Cell
-                >
-              </Table.Row>
+              {#if result.encoding.outliersRemoved > 0}
+                <Table.Row>
+                  <Table.Cell class="font-medium"
+                    >{m.demo_benchmark_outliers()}</Table.Cell
+                  >
+                  <Table.Cell class="text-right"
+                    >{result.encoding.outliersRemoved}</Table.Cell
+                  >
+                </Table.Row>
+              {/if}
             </Table.Body>
           </Table.Root>
         </div>
@@ -109,6 +127,14 @@
               </Table.Row>
               <Table.Row>
                 <Table.Cell class="font-medium"
+                  >{m.demo_benchmark_ci95()}</Table.Cell
+                >
+                <Table.Cell class="text-right"
+                  >±{formatTime(result.decoding.marginOfError)}</Table.Cell
+                >
+              </Table.Row>
+              <Table.Row>
+                <Table.Cell class="font-medium"
                   >{m.demo_benchmark_median()}</Table.Cell
                 >
                 <Table.Cell class="text-right"
@@ -121,6 +147,14 @@
                 >
                 <Table.Cell class="text-right"
                   >{formatTime(result.decoding.stdDev)}</Table.Cell
+                >
+              </Table.Row>
+              <Table.Row>
+                <Table.Cell class="font-medium"
+                  >{m.demo_benchmark_iqr()}</Table.Cell
+                >
+                <Table.Cell class="text-right"
+                  >{formatTime(result.decoding.iqr)}</Table.Cell
                 >
               </Table.Row>
               <Table.Row>
@@ -147,14 +181,16 @@
                   >{formatTime(result.decoding.p95)}</Table.Cell
                 >
               </Table.Row>
-              <Table.Row>
-                <Table.Cell class="font-medium"
-                  >{m.demo_benchmark_p99()}</Table.Cell
-                >
-                <Table.Cell class="text-right"
-                  >{formatTime(result.decoding.p99)}</Table.Cell
-                >
-              </Table.Row>
+              {#if result.decoding.outliersRemoved > 0}
+                <Table.Row>
+                  <Table.Cell class="font-medium"
+                    >{m.demo_benchmark_outliers()}</Table.Cell
+                  >
+                  <Table.Cell class="text-right"
+                    >{result.decoding.outliersRemoved}</Table.Cell
+                  >
+                </Table.Row>
+              {/if}
             </Table.Body>
           </Table.Root>
         </div>

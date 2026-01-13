@@ -6,6 +6,7 @@
   import {Progress} from "$lib/components/ui/progress";
   import {Switch} from "$lib/components/ui/switch";
   import {Label} from "$lib/components/ui/label";
+  import {Input} from "$lib/components/ui/input";
   import {
     Loader2,
     Play,
@@ -293,21 +294,48 @@
       transition:slide={{duration: 150}}
       class="bg-muted/30 rounded-lg border p-4"
     >
-      <div class="flex items-center gap-3">
-        <Switch
-          id="zstd"
-          checked={algorithmStore.enableZstd}
-          onCheckedChange={(checked) => {
-            algorithmStore.enableZstd = checked;
-          }}
-        />
-        <div>
-          <Label for="zstd" class="text-sm font-medium">
-            {m.demo_options_zstd()}
-          </Label>
-          <p class="text-muted-foreground text-xs">
-            {m.demo_options_zstd_description()}
-          </p>
+      <div class="flex flex-wrap items-center gap-6">
+        <div class="flex items-center gap-3">
+          <Switch
+            id="zstd"
+            checked={algorithmStore.enableZstd}
+            onCheckedChange={(checked) => {
+              algorithmStore.enableZstd = checked;
+            }}
+          />
+          <div>
+            <Label for="zstd" class="text-sm font-medium">
+              {m.demo_options_zstd()}
+            </Label>
+            <p class="text-muted-foreground text-xs">
+              {m.demo_options_zstd_description()}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <Input
+            id="batchSize"
+            type="number"
+            min={1}
+            max={100}
+            class="w-20"
+            value={algorithmStore.comparisonBatchSize}
+            oninput={(e) => {
+              const target = e.target as HTMLInputElement;
+              algorithmStore.setComparisonBatchSize(
+                parseInt(target.value) || 20
+              );
+            }}
+          />
+          <div>
+            <Label for="batchSize" class="text-sm font-medium">
+              {m.demo_options_batch_size()}
+            </Label>
+            <p class="text-muted-foreground text-xs">
+              {m.demo_options_batch_size_description()}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -363,13 +391,14 @@
           <ResultCard
             {result}
             isBestSize={result.deltaSize === compressionStore.bestDeltaSize}
-            isBestEncodeTime={result.encodeTimeMs ===
-              compressionStore.bestEncodeTime}
-            isBestDecodeTime={result.decodeTimeMs ===
-              compressionStore.bestDecodeTime}
           />
         {/each}
       </div>
+
+      <!-- Timing disclaimer -->
+      <p class="text-muted-foreground text-xs">
+        {m.demo_result_timing_disclaimer()}
+      </p>
 
       <!-- Benchmark toggle -->
       <Button

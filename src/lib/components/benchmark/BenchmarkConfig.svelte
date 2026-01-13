@@ -8,7 +8,7 @@
 <div class="space-y-4">
   <h3 class="text-lg font-medium">{m.demo_benchmark_config()}</h3>
 
-  <div class="grid grid-cols-3 gap-4">
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
     <div class="space-y-2">
       <Label for="iterations" class="text-sm font-medium">
         {m.demo_benchmark_iterations()}
@@ -22,6 +22,23 @@
         oninput={(e) => {
           const target = e.target as HTMLInputElement;
           benchmarkStore.setIterations(parseInt(target.value) || 10);
+        }}
+      />
+    </div>
+
+    <div class="space-y-2">
+      <Label for="batchSize" class="text-sm font-medium">
+        {m.demo_benchmark_batch_size()}
+      </Label>
+      <Input
+        id="batchSize"
+        type="number"
+        min={1}
+        max={100}
+        value={benchmarkStore.config.batchSize}
+        oninput={(e) => {
+          const target = e.target as HTMLInputElement;
+          benchmarkStore.setBatchSize(parseInt(target.value) || 20);
         }}
       />
     </div>
