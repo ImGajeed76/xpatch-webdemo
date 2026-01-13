@@ -44,6 +44,11 @@ export const bsdiffAlgorithm: DeltaAlgorithm = {
       throw new Error("bsdiff not initialized");
     }
 
+    // bsdiff doesn't handle empty inputs well
+    if (baseData.length === 0 || newData.length === 0) {
+      throw new Error("bsdiff requires non-empty inputs");
+    }
+
     const start = performance.now();
 
     // Write input files to virtual FS

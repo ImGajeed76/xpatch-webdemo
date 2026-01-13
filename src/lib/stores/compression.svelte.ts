@@ -22,13 +22,7 @@ function createCompressionStore() {
   });
   let error = $state<string | null>(null);
 
-  const hasData = $derived(baseData !== null && newData !== null);
-  const dataIsIdentical = $derived(
-    baseData !== null &&
-      newData !== null &&
-      baseData.length === newData.length &&
-      baseData.every((byte, i) => newData !== null && byte === newData[i])
-  );
+  const hasData = $derived(true); // Allow empty inputs
   const baseSize = $derived(baseData?.length ?? 0);
   const newSize = $derived(newData?.length ?? 0);
   const hasResults = $derived(results.length > 0);
@@ -126,17 +120,9 @@ function createCompressionStore() {
 
     // Actions
     async runComparison(): Promise<void> {
-      // At least one input is required
-      if (!baseData || !newData) {
-        error = "Please provide both base and new data";
-        return;
-      }
-
-      // If both exist, they cannot be identical
-      if (dataIsIdentical) {
-        error = "Base and new data must be different";
-        return;
-      }
+      // Use empty arrays if data is null
+      const base = baseData ?? new Uint8Array(0);
+      const newer = newData ?? new Uint8Array(0);
 
       const selectedAlgorithms = algorithmStore.getSelectedAlgorithms();
       if (selectedAlgorithms.length === 0) {
@@ -154,10 +140,6 @@ function createCompressionStore() {
       };
 
       const newResults: CompressionResult[] = [];
-
-      // Create local non-null references for use in async context
-      const base = baseData;
-      const newer = newData;
 
       for (let i = 0; i < selectedAlgorithms.length; i++) {
         const algorithm = selectedAlgorithms[i];

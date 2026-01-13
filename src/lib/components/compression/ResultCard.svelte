@@ -51,11 +51,6 @@
         <p class="text-2xl font-semibold tracking-tight whitespace-nowrap">
           {formatBytes(result.deltaSize)}
         </p>
-        <p class="text-muted-foreground text-xs whitespace-nowrap">
-          {Math.round((1 - result.compressionRatio) * 100)}% {m
-            .demo_result_savings()
-            .toLowerCase()}
-        </p>
       </div>
 
       <!-- Secondary: Time -->

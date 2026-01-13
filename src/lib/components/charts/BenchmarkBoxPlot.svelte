@@ -123,14 +123,15 @@
               title="Mean: {formatTime(item.mean)}"
             ></div>
           </div>
-
-          <!-- Scale labels -->
-          <div class="text-muted-foreground flex justify-between text-xs">
-            <span>{formatTime(item.min)}</span>
-            <span>{formatTime(item.max)}</span>
-          </div>
         </div>
       {/each}
+
+      <!-- Shared time scale -->
+      <div class="text-muted-foreground flex justify-between pt-2 text-xs">
+        <span>0</span>
+        <span>{formatTime(globalMax / 2)}</span>
+        <span>{formatTime(globalMax)}</span>
+      </div>
     </div>
 
     <!-- Legend -->

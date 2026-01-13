@@ -139,13 +139,9 @@ function createBenchmarkStore() {
 
     // Actions
     async runBenchmark(): Promise<void> {
-      const baseData = compressionStore.baseData;
-      const newData = compressionStore.newData;
-
-      if (!baseData || !newData) {
-        error = "Please provide both base and new data";
-        return;
-      }
+      // Use empty arrays if data is null
+      const baseData = compressionStore.baseData ?? new Uint8Array(0);
+      const newData = compressionStore.newData ?? new Uint8Array(0);
 
       const selectedAlgorithms = algorithmStore.getSelectedAlgorithms();
       if (selectedAlgorithms.length === 0) {
