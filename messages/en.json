@@ -21,6 +21,10 @@
   "demo_algorithm_fossil_description": "Fast, lightweight pure JavaScript delta compression",
   "demo_algorithm_bsdiff": "bsdiff",
   "demo_algorithm_bsdiff_description": "Binary diff algorithm, excellent for executables",
+  "demo_algorithm_diff_match_patch": "diff-match-patch",
+  "demo_algorithm_diff_match_patch_description": "Google's text diff with semantic cleanup",
+  "demo_algorithm_jsdiff": "jsdiff",
+  "demo_algorithm_jsdiff_description": "Line-based unified diff format",
 
   "demo_options_label": "Options",
   "demo_options_zstd": "Enable zstd compression",

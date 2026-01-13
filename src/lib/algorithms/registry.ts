@@ -30,6 +30,20 @@ export const algorithmInfo: AlgorithmInfo[] = [
     isWasm: true,
     color: "hsl(var(--chart-4))",
   },
+  {
+    id: "diff-match-patch",
+    name: "diff-match-patch",
+    description: "Google's text diff with semantic cleanup",
+    isWasm: false,
+    color: "hsl(var(--chart-5))",
+  },
+  {
+    id: "jsdiff",
+    name: "jsdiff",
+    description: "Line-based unified diff format",
+    isWasm: false,
+    color: "hsl(var(--primary))",
+  },
 ];
 
 // Cache for loaded algorithms
@@ -65,6 +79,16 @@ export async function getAlgorithm(
     case "bsdiff": {
       const {bsdiffAlgorithm} = await import("./bsdiff");
       algorithm = bsdiffAlgorithm;
+      break;
+    }
+    case "diff-match-patch": {
+      const {diffMatchPatchAlgorithm} = await import("./diff-match-patch");
+      algorithm = diffMatchPatchAlgorithm;
+      break;
+    }
+    case "jsdiff": {
+      const {jsdiffAlgorithm} = await import("./jsdiff");
+      algorithm = jsdiffAlgorithm;
       break;
     }
   }
