@@ -164,7 +164,7 @@
               compressionStore.setBaseData(null);
               if (baseFileInput) baseFileInput.value = "";
             }}
-            aria-label="Clear file"
+            aria-label={m.common_button_clear_file()}
           >
             <X class="h-4 w-4" />
           </button>
@@ -219,7 +219,7 @@
               compressionStore.setNewData(null);
               if (newFileInput) newFileInput.value = "";
             }}
-            aria-label="Clear file"
+            aria-label={m.common_button_clear_file()}
           >
             <X class="h-4 w-4" />
           </button>

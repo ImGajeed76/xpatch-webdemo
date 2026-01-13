@@ -24,7 +24,7 @@
   class="bg-card rounded-lg border p-4 transition-colors duration-150 {result.error
     ? 'border-destructive'
     : !result.verified
-      ? 'border-warning'
+      ? 'border-yellow-500 dark:border-yellow-400'
       : isBestSize
         ? 'border-primary'
         : ''}"
@@ -47,7 +47,9 @@
           >{algorithmInfo?.name ?? result.algorithmId}</span
         >
         {#if !result.verified}
-          <AlertTriangle class="text-warning h-4 w-4 shrink-0" />
+          <AlertTriangle
+            class="h-4 w-4 shrink-0 text-yellow-600 dark:text-yellow-500"
+          />
         {:else if isBestSize}
           <Trophy class="text-primary h-4 w-4 shrink-0" />
         {:else}
@@ -74,7 +76,7 @@
 
       <!-- Verification warning -->
       {#if !result.verified}
-        <p class="text-warning text-xs">
+        <p class="text-xs text-yellow-600 dark:text-yellow-500">
           {m.demo_result_reconstruction_failed()}
         </p>
       {/if}

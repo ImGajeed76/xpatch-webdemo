@@ -102,6 +102,7 @@
 
   "common_button_back": "Back",
   "common_button_upload_file": "Upload file",
+  "common_button_clear_file": "Clear file",
   "common_button_toggle_options": "Toggle options",
   "common_button_toggle_benchmark": "Toggle benchmark",
   "common_button_toggle_raw_data": "Toggle raw data",
