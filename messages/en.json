@@ -51,6 +51,7 @@
   "demo_result_decode_abbr": "Dec",
   "demo_result_verified": "Verified",
   "demo_result_not_verified": "Not verified",
+  "demo_result_reconstruction_failed": "Reconstruction failed",
   "demo_result_error": "Error",
   "demo_result_best": "Best",
   "demo_result_wasm": "WASM",

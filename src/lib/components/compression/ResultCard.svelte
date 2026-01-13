@@ -3,7 +3,12 @@
   import type {CompressionResult} from "$lib/algorithms/types";
   import {getAlgorithmInfo} from "$lib/algorithms/registry";
   import {formatBytes, formatTime} from "$lib/utils/format";
-  import {CheckCircle, AlertCircle, Trophy} from "@lucide/svelte";
+  import {
+    CheckCircle,
+    AlertCircle,
+    AlertTriangle,
+    Trophy,
+  } from "@lucide/svelte";
 
   interface Props {
     result: CompressionResult;
@@ -18,9 +23,11 @@
 <div
   class="bg-card rounded-lg border p-4 transition-colors duration-150 {result.error
     ? 'border-destructive'
-    : isBestSize
-      ? 'border-primary'
-      : ''}"
+    : !result.verified
+      ? 'border-warning'
+      : isBestSize
+        ? 'border-primary'
+        : ''}"
 >
   {#if result.error}
     <div class="text-destructive flex items-center gap-2">
@@ -39,9 +46,11 @@
         <span class="truncate text-sm font-medium"
           >{algorithmInfo?.name ?? result.algorithmId}</span
         >
-        {#if isBestSize}
+        {#if !result.verified}
+          <AlertTriangle class="text-warning h-4 w-4 shrink-0" />
+        {:else if isBestSize}
           <Trophy class="text-primary h-4 w-4 shrink-0" />
-        {:else if result.verified}
+        {:else}
           <CheckCircle class="text-muted-foreground h-3 w-3 shrink-0" />
         {/if}
       </div>
@@ -62,6 +71,13 @@
           {m.demo_result_decode_abbr()}: {formatTime(result.decodeTimeMs)}*
         </p>
       </div>
+
+      <!-- Verification warning -->
+      {#if !result.verified}
+        <p class="text-warning text-xs">
+          {m.demo_result_reconstruction_failed()}
+        </p>
+      {/if}
     </div>
   {/if}
 </div>
